@@ -1,14 +1,14 @@
 DATAS SEGMENT
-    ;�˴��������ݶδ���
-    students STRUCT			 ;ƫ���� 	 
+    ;此处输入数据段代码
+    students STRUCT			 ;偏移量 	 
 	NAME DB 3+1 DUP('$')	 ;name:0-3
 	grade DB ?			 ;grade:4
 	MINGCI DB 1			 ;MINGCI:5
-	students endS   ;�ṹ�干6���ֽ�
+	students endS   ;结构体共6个字节
   
-  	N EQU 3		;�ı�Nֵ���ɿ�������ѧ����Ϣ�ĸ���
+  	N EQU 3		;改变N值，可控制输入学生信息的个数
 	student_list students n dup(<>)
-	jiange dd 10 dup(?)		;���������ʾ�ڵ��˵�
+	jiange dd 10 dup(?)		;数据溢出显示遮挡菜单
     WELCOME1	DB		'\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\',13,10
     WELCOME2	DB		'|			student information system			|',13,10
     WELCOME3	DB		'|			1.add  student             			|',13,10
@@ -35,13 +35,13 @@ DATAS SEGMENT
 DATAS ENDS
 
 STACKS SEGMENT
-    ;�˴������ջ�δ���
+    ;此处输入堆栈段代码
 STACKS ENDS
 
 CODES SEGMENT
     ASSUME CS:CODES,DS:DATAS,SS:STACKS
 START:  
-    HH MACRO;����
+    HH MACRO;换行
 	MOV AH,2
 	MOV DL,13
 	INT 21H
@@ -50,30 +50,30 @@ START:
 	INT 21H
 	ENDM
 	
-	OUTPUT1 MACRO STRING	;����ַ�
+	OUTPUT1 MACRO STRING	;输出字符
 	MOV AH,2
 	MOV DL,STRING
 	INT 21H
 	ENDM
 	
-	OUTPUT2 MACRO STRING	;����ַ���
+	OUTPUT2 MACRO STRING	;输出字符串
 	MOV AH,9
 	LEA DX,STRING
 	INT 21H
 	ENDM
 	
-	INPUT1 MACRO STRING		;�����ַ�
+	INPUT1 MACRO STRING		;输入字符
 	MOV AH,1
 	INT 21H
 	ENDM
 	
-	INPUT2 MACRO STRING		;�����ַ���
+	INPUT2 MACRO STRING		;输入字符串
 	MOV AH,10
 	LEA DX,STRING
 	INT 21H
 	ENDM
 	
-	INPUTCJ MACRO STRING	;����ɼ�
+	INPUTCJ MACRO STRING	;输入成绩
 	LOCAL
     MOV DX,0
   DSP2:  
@@ -143,10 +143,10 @@ START:
 	ENDM
 
 
-    MOV AX,DATAS	;������
+    MOV AX,DATAS	;主程序
     MOV DS,AX
     MOV ES,AX
-    ;�˴��������δ���
+    ;此处输入代码段代码
    TOP: 
     OUTPUT2 WELCOME1
     INPUT1
@@ -154,7 +154,7 @@ START:
    	HH
    	POP  AX
    	
-    .IF AL=='1'			;����1
+    .IF AL=='1'			;功能1
     MOV CX,N
     LPP1:
      PUSH CX
@@ -163,7 +163,7 @@ START:
    	 LOOP LPP1
    	 JMP TOP
    	 
-    .ELSEIF AL=='2'		;����2
+    .ELSEIF AL=='2'		;功能2
    	 CALL SORT
    	 MOV CX,N
    	 MOV S2,0
@@ -175,36 +175,36 @@ START:
    	 LOOP LPP2
    	 JMP TOP
    	 
-    .ELSEIF AL=='3'		;����3
+    .ELSEIF AL=='3'		;功能3
     CALL  SELECT
      JMP TOP
      
-    .ELSEIF AL=='4'		;����4
+    .ELSEIF AL=='4'		;功能4
     JMP EXIT
     
-    .ELSE				;����
+    .ELSE				;报错
     OUTPUT2 STRING1
     JMP TOP
     
     .ENDIF
     
-    EXIT:				;����
+    EXIT:				;出口
     MOV AH,4CH
     INT 21H
     
     
     
     
-    ;�ӳ���
+    ;子程序
     
     
-    INPUT PROC	;����
+    INPUT PROC	;输入
     
     OUTPUT2 WELCOME9
     MOV SI,S1
     LEA BX,student_list	
     
-    MOV CX,3			;��������
+    MOV CX,3			;输入姓名
     LP1:
 	INPUT1 
 	CMP AL,13
@@ -226,14 +226,14 @@ START:
     OUTPUT2 WELCOME10
     MOV SI,S1
     ADD SI,4
-    INPUTCJ [BX+SI]		;�������
+    INPUTCJ [BX+SI]		;输入分数
     HH
     ADD SI,2
     MOV S1,SI
     RET
     INPUT ENDP
     
-    SHUCHU PROC    		;���
+    SHUCHU PROC    		;输出
     OUTPUT2 STRING4
     MOV SI,S2
     LEA BX,student_list
@@ -256,23 +256,23 @@ START:
     
     SORT PROC
     MOV CX,N-1		
-	.WHILE CX				;ð������
+	.WHILE CX				;冒泡排序法
 	PUSH CX		
 	LEA BX,student_list	
 	.WHILE CX
 	MOV DI,4
-	MOV DL,[BX+DI]		;ȡ���ĵ�һ��ֵ�������ĺ�һλֵ�Ƚϣ���Ӧ���ṹ��Ϊgrade����
-	MOV DH,[BX+DI+6]	;ȡ���ĵڶ���ֵ������ǰһλ�Ƚ�
-	.IF DL<DH		;���ǰһ��С�ں�һ���ɼ�����������ݽ���
+	MOV DL,[BX+DI]		;取到的第一个值，与它的后一位值比较，对应到结构体为grade部分
+	MOV DH,[BX+DI+6]	;取到的第二个值，与其前一位比较
+	.IF DL<DH		;如果前一个小于后一个成绩，则进行数据交换
 		MOV DI,0
-		.WHILE DI<6				;�ṹ��ʵ�ʳ���Ϊ6
+		.WHILE DI<6				;结构体实际长度为6
 		XCHG AL,[BX+DI]
-		XCHG [BX+DI+6],AL		;.while��Ϊǰ�����ݽ�������
+		XCHG [BX+DI+6],AL		;.while内为前后数据交换部分
 		XCHG [BX+DI],AL
 		INC DI
 		.ENDW
 	.ENDIF
-	ADD BX,6	;�����ڶ���λ�����һ�����ݱȽϣ�ð������
+	ADD BX,6	;跳到第二个位置与后一段数据比较，冒泡排序法
 	DEC CX					
 	.ENDW
 	POP CX
@@ -282,11 +282,11 @@ START:
     SORT ENDP
     
     
-    SELECT PROC		;ȡ����Ӧ�ɼ�
+    SELECT PROC		;取出对应成绩
     
     OUTPUT2 WELCOME9
     MOV SI,0
-    MOV CX,3			;��������
+    MOV CX,3			;输入姓名
     LLP1:
 	INPUT1 
 	CMP AL,13
@@ -311,7 +311,7 @@ START:
 	LEA BP,STRING5
 	MOV CX,N
 	
-	LLP3:				;ѭ���Ƚ��ҳ��ɼ� 
+	LLP3:				;循环比较找出成绩 
 	PUSH CX
 	MOV CX,3
 	MOV SI,0
@@ -351,7 +351,7 @@ START:
     
     
     
-    INPUTCJ2 PROC	;�ж��޸�
+    INPUTCJ2 PROC	;判断修改
     
     TO2:
 	OUTPUT2 STRING6
@@ -362,7 +362,7 @@ START:
 	HH
 	OUTPUT2 WELCOME10
     MOV SI,4
-    INPUTCJ [BX+SI]		;�������
+    INPUTCJ [BX+SI]		;输入分数
 	.ELSEIF AL=='n'
 	
 	.ELSE
